@@ -50,6 +50,7 @@ describe("oauth metadata", async () => {
 						oauthAuthServerConfig: true,
 						openidConfig: true,
 					},
+					allowDynamicClientRegistration: true,
 					...opts?.oauthProviderConfig,
 				}),
 				...(opts?.oauthProviderConfig?.disableJwtPlugin
@@ -163,6 +164,30 @@ describe("oauth metadata", async () => {
 			code_challenge_methods_supported: ["S256"],
 			authorization_response_iss_parameter_supported: true,
 		});
+	});
+
+	it("should not provide dynamic client registration endpoint when disabled", async () => {
+		const { auth } = await createTestInstance({
+			oauthProviderConfig: {
+				allowDynamicClientRegistration: false,
+			},
+		});
+		const metadata = await auth.api.getOpenIdConfig();
+		expect(metadata.registration_endpoint).toBeUndefined();
+		const oauthMetadata = await auth.api.getOAuthServerConfig();
+		expect(oauthMetadata.registration_endpoint).toBeUndefined();
+	});
+
+	it("should not provide dynamic client registration endpoint when undefined", async () => {
+		const { auth } = await createTestInstance({
+			oauthProviderConfig: {
+				allowDynamicClientRegistration: undefined,
+			},
+		});
+		const metadata = await auth.api.getOpenIdConfig();
+		expect(metadata.registration_endpoint).toBeUndefined();
+		const oauthMetadata = await auth.api.getOAuthServerConfig();
+		expect(oauthMetadata.registration_endpoint).toBeUndefined();
 	});
 
 	it("should utilize advertised metadata fields", async () => {
